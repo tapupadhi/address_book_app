@@ -12,7 +12,7 @@ SQLite
   1. clone the project: "git clone git@github.com:tapupadhi/address_book_app.git"
   2. navigate inside to your cloned directory
   3. create virtual environment and configured your python interpreter
-    # Steps to create virtual environment:
+    **Steps to create virtual environment:**
       go to folder containing project
       python3 -m venv evn_name
       source evn_name/bin/activate
