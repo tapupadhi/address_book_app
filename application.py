@@ -1,3 +1,5 @@
+import logging
+
 from typing import List
 
 from fastapi import Depends, FastAPI, HTTPException
@@ -15,6 +17,14 @@ app = FastAPI(
     version="1.0.0"
 )
 
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="{asctime} {levelname:<8} {message}",
+    style='{',
+    filename="%slog" % __file__[:-2],
+    filemode='a'
+)
+
 
 def get_db():
     db = session_local()
@@ -25,21 +35,23 @@ def get_db():
 
 
 @app.get("/retrieve_all_address_details", response_model=List[schema.Address])
-def retrieve_all_address_details(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+async def retrieve_all_address_details(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     addresses = crud.get_addresses(db=db, skip=skip, limit=limit)
     return addresses
 
 
 @app.post("/add_new_address", response_model=schema.AddressAdd)
-def add_new_address(address: schema.AddressAdd, db: Session = Depends(get_db)):
+async def add_new_address(address: schema.AddressAdd, db: Session = Depends(get_db)):
     address_id = crud.get_address_by_address_id(db=db, address_id=address.address_id)
     if address_id:
-        raise HTTPException(status_code=400, detail=f"Address id {address.address_id} already exist in database.")
+        logging.error(f"Address details couldn't add to db due to address_id {address.address_id} is already exist")
+        raise HTTPException(status_code=400, detail=f"Address detail with address_id {address.address_id} already "
+                                                    f"exist in database.")
     return crud.add_address_details_to_db(db=db, address=address)
 
 
 @app.delete("/delete_address_by_id")
-def delete_address_by_id(sl_id: int, db: Session = Depends(get_db)):
+async def delete_address_by_id(sl_id: int, db: Session = Depends(get_db)):
     details = crud.get_address_by_id(db=db, sl_id=sl_id)
     if not details:
         raise HTTPException(status_code=400, detail=f"No record found to delete")
@@ -52,7 +64,7 @@ def delete_address_by_id(sl_id: int, db: Session = Depends(get_db)):
 
 
 @app.put('/update_address_details', response_model=schema.Address)
-def update_address_details(sl_id: int, update_param: schema.UpdateAddress, db: Session = Depends(get_db)):
+async def update_address_details(sl_id: int, update_param: schema.UpdateAddress, db: Session = Depends(get_db)):
     details = crud.get_address_by_id(db=db, sl_id=sl_id)
     if not details:
         raise HTTPException(status_code=400, detail=f"No record found to delete")
