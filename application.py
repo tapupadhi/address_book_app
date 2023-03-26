@@ -21,7 +21,7 @@ logging.basicConfig(
     level=logging.DEBUG,
     format="{asctime} {levelname:<8} {message}",
     style='{',
-    filename="%slog" % __file__[:-2],
+    filename="logs/request.log",
     filemode='a'
 )
 
